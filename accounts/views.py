@@ -16,7 +16,7 @@ def send_login_email(request):
     url = request.build_absolute_uri(f'/accounts/login?uid={uid}')
     send_mail(
         'Your login link for Superlists',
-        f'Use this link to login:\n\n{url}',
+        f'Use this link to log in:\n\n{url}',
         'tutran.cl@gmail.com',
         [email],
     )
