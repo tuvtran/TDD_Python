@@ -1,5 +1,5 @@
 from django.test import TestCase
-from unittest.mock import patch
+from unittest.mock import patch, call
 from accounts.models import Token
 
 
@@ -18,7 +18,7 @@ class SendLoginEmailViewTest(TestCase):
         })
 
         self.assertEqual(mock_send_mail.called, True)
-        (subject, body, from_email, to_list), kwards = mock_send_mail.call_args
+        (subject, body, from_email, to_list), kwargs = mock_send_mail.call_args
         self.assertEqual(subject, 'Your login link for Superlists')
         self.assertEqual(from_email, 'tutran.cl@gmail.com')
         self.assertEqual(to_list, ['tuantudonald@gmail.com'])
@@ -57,5 +57,23 @@ class LoginViewTest(TestCase):
 
         token = Token.objects.first()
         expected_url = f'http://testserver/accounts/login?token={token.uid}'
-        (subject, body, from_email, to_list), kwards = mock_send_mail.call_args
+        (subject, body, from_email, to_list), kwargs = mock_send_mail.call_args
         self.assertIn(expected_url, body)
+
+    @patch('accounts.views.auth')
+    def test_calls_authenticate_with_uid_from_get_request(self, mock_auth):
+        self.client.get('/accounts/login?token=abcd123')
+        self.assertEqual(
+            mock_auth.authenticate.call_args,
+            call(uid='abcd123')
+        )
+
+    @patch('accounts.views.auth')
+    def test_calls_auth_login_with_user_if_there_is_one(self, mock_auth):
+        response = self.client.get('/accounts/login?token=abcd123')
+        self.assertEqual(
+            mock_auth.login.call_args,
+            # Check it with the request object that the view sees
+            # and the "user" object that the authenticate function returns
+            call(response.wsgi_request, mock_auth.authenticate.return_value)
+        )
