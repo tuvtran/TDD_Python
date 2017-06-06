@@ -4,7 +4,7 @@ from django.contrib.auth import (
     SESSION_KEY,
     get_user_model
 )
-from django.contrib.sessions.backens.db import SessionStore
+from django.contrib.sessions.backends.db import SessionStore
 from .base import FunctionalTest
 User = get_user_model()
 
